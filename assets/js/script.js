@@ -16,37 +16,34 @@ function generateTaskId() {
 function createTaskCard(task) {
   const taskCard = $('<div>').addClass('card task-card draggable my-3');
   taskCard.attr('data-task-id', task.id)
-
-  // TODO: Create a new card header element and add the classes `card-header` and `h4`. Also set the text of the card header to the project name.
+  
+  // Initializing card header, body, type and due date
   const cardHeader = $("<header>");
   cardHeader.addClass('card-header h4');
   cardHeader.text(task.name);
 
-  // TODO: Create a new card body element and add the class `card-body`.
   const cardBody = $("<body>");
   cardBody.add("card-body");
 
-  // TODO: Create a new paragraph element and add the class `card-text`. Also set the text of the paragraph to the project type.
   const cardType = $("<p>");
   cardType.addClass('card-text');
 
-  // TODO: Create a new paragraph element and add the class `card-text`. Also set the text of the paragraph to the project due date.
   const cardDate = $("<p>");
   cardType.addClass('card-text');
   cardType.text(task.date);
 
-  // TODO: Create a new button element and add the classes `btn`, `btn-danger`, and `delete`. Also set the text of the button to "Delete" and add a `data-project-id` attribute and set it to the project id.
+  // Add delete button
   const cardBtn = $('<button>');
   cardBtn.addClass('btn btn-danger delete');
   cardBtn.text('Delete');
   cardBtn.attr("data-task-id", task.id);
 
-  // ? Sets the card background color based on due date. Only apply the styles if the dueDate exists and the status is not done.
+  // Sets the card background color based on due date. Only apply the styles if the dueDate exists and the status is not done.
   if (task.Date && task.status !== 'done') {
     const now = dayjs();
     const taskDueDate = dayjs(task.Date, 'DD/MM/YYYY');
 
-    // ? If the task is due today, make the card yellow. If it is overdue, make it red.
+    // If the task is due today, make the card yellow. If it is overdue, make it red.
     if (now.isSame(taskDueDate, 'day')) {
       taskCard.addClass('bg-warning text-white');
     } else if (now.isAfter(taskDueDate)) {
@@ -55,20 +52,13 @@ function createTaskCard(task) {
     }
   }
 
-  // TODO: Append the card description, card due date, and card delete button to the card body.
   cardBody.append(cardType, cardDate, cardBtn);
-
-  // TODO: Append the card header and card body to the card.
   taskCard.append(cardHeader, cardBody);
-
-  // ? Return the card so it can be appended to the correct lane.
   return taskCard;
 }
 
 // Todo: create a function to render the task list and make cards draggable
 function renderTaskList() {
-  console.log("Rendering Tasks");
-  
   let tasks = JSON.parse(localStorage.getItem('tasks'));
   if (!tasks) tasks = [];
 
@@ -92,6 +82,23 @@ function renderTaskList() {
       doneList.append(taskCard);
     }
   }
+
+  // ? Use JQuery UI to make task cards draggable
+  $('.draggable').draggable({
+    opacity: 0.7,
+    zIndex: 100,
+    // ? This is the function that creates the clone of the card that is dragged. This is purely visual and does not affect the data.
+    helper: function (e) {
+      // ? Check if the target of the drag event is the card itself or a child element. If it is the card itself, clone it, otherwise find the parent card  that is draggable and clone that.
+      const original = $(e.target).hasClass('ui-draggable')
+        ? $(e.target)
+        : $(e.target).closest('.ui-draggable');
+      // ? Return the clone with the width set to the width of the original card. This is so the clone does not take up the entire width of the lane. This is to also fix a visual bug where the card shrinks as it's dragged to the right.
+      return original.clone().css({
+        width: original.outerWidth(),
+      });
+    },
+  });
 }
 
 // Todo: create a function to handle adding a new task
@@ -131,7 +138,23 @@ function handleDeleteTask(event){
 
 // Todo: create a function to handle dropping a task into a new status lane
 function handleDrop(event, ui) {
+  let tasks = JSON.parse(localStorage.getItem('tasks'));
+  if (!tasks) tasks = [];
 
+  const taskId = ui.draggable[0].dataset.taskId;
+
+  // ? Get the id of the lane that the card was dropped into
+  const newStatus = event.target.id;
+
+  for (let task of tasks) {
+    // ? Find the project card by the `id` and update the project status.
+    if (task.id === taskId) {
+      task.status = newStatus;
+    }
+  }
+  // ? Save the updated projects array to localStorage (overwritting the previous one) and render the new project data to the screen.
+  localStorage.setItem('tasks', JSON.stringify(tasks));
+  renderTaskList();
 }
 
 // Todo: when the page loads, render the task list, add event listeners, make lanes droppable, and make the due date field a date picker
@@ -144,5 +167,11 @@ $(document).ready(function () {
   $('#task-date-input').datepicker({
     changeMonth: true,
     changeYear: true,
+  }); 
+
+  // ? Make lanes droppable
+  $('.lane').droppable({
+    accept: '.draggable',
+    drop: handleDrop,
   });
 });
