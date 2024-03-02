@@ -3,6 +3,7 @@ let taskList = JSON.parse(localStorage.getItem("tasks"));
 let nextId = JSON.parse(localStorage.getItem("nextId"));
 
 const taskModalEl = $('#task-modal');
+const taskDisplayEl = $('.swim-lanes');
 const taskNameInputEl = $('#task-name-input');
 const taskDateInputEl = $('#task-date-input');
 const taskDescInputEl = $('#task-desc-input');
@@ -103,8 +104,6 @@ function renderTaskList() {
 
 // Todo: create a function to handle adding a new task
 function handleAddTask(event){
-  event.preventDefault();
-  
   let taskName = taskNameInputEl.val();
   let taskDate = taskDateInputEl.val();
   let taskDesc = taskDescInputEl.val();
@@ -133,7 +132,22 @@ function handleAddTask(event){
 
 // Todo: create a function to handle deleting a task
 function handleDeleteTask(event){
+  const taskId = $(this).attr('data-task-id');
+  let tasks = JSON.parse(localStorage.getItem('tasks'));
+  if (!tasks) tasks = [];
+  
+  let idxToDel = -1;
 
+  for(let i = 0; i < tasks.length; i++) {
+    if(tasks[i].id === taskId) {
+      idxToDel = i;
+    }
+  }
+
+  tasks.splice(idxToDel, 1);
+
+  localStorage.setItem('tasks', JSON.stringify(tasks));
+  renderTaskList();
 }
 
 // Todo: create a function to handle dropping a task into a new status lane
@@ -159,6 +173,7 @@ function handleDrop(event, ui) {
 
 // Todo: when the page loads, render the task list, add event listeners, make lanes droppable, and make the due date field a date picker
 taskModalEl.on('submit', handleAddTask);
+taskDisplayEl.on('click', '.delete', handleDeleteTask);
 
 $(document).ready(function () {
   
