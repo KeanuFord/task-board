@@ -14,23 +14,48 @@ function displayTime() {
 
 function readProjectsFromStorage() {
   
-  // TODO: Retrieve projects from localStorage and parse the JSON to an array. If there are no projects in localStorage, initialize an empty array and return it.
-
+  // DONE: Retrieve projects from localStorage and parse the JSON to an array. If there are no projects in localStorage, initialize an empty array and return it.
+  const projects = JSON.parse(localStorage.getItem('projects'));
+  if(projects) return projects;
+  else return [];
 }
 
-// TODO: Create a function that accepts an array of projects, stringifys them, and saves them in localStorage.
-
+// DONE: Create a function that accepts an array of projects, stringifys them, and saves them in localStorage.
+function saveProjectsToStorage(projects) {
+  localStorage.setItem('projects', JSON.stringify(projects));
+}
 
 // ? Creates a project card from the information passed in `project` parameter and returns it.
 function createProjectCard(project) {
 
   // TODO: Create a new card element and add the classes `card`, `project-card`, `draggable`, and `my-3`. Also add a `data-project-id` attribute and set it to the project id.
-  // TODO: Create a new card header element and add the classes `card-header` and `h4`. Also set the text of the card header to the project name.
-  // TODO: Create a new card body element and add the class `card-body`.
-  // TODO: Create a new paragraph element and add the class `card-text`. Also set the text of the paragraph to the project type.
-  // TODO: Create a new paragraph element and add the class `card-text`. Also set the text of the paragraph to the project due date.
-  // TODO: Create a new button element and add the classes `btn`, `btn-danger`, and `delete`. Also set the text of the button to "Delete" and add a `data-project-id` attribute and set it to the project id.
+  //project.addClass('card project-card draggable my-3');
+  const taskCard = $('<div>').addClass('card project-card draggable my-3');
+  taskCard.attr('data-project-id', project.id);
 
+  // TODO: Create a new card header element and add the classes `card-header` and `h4`. Also set the text of the card header to the project name.
+  const cardHeader = $("<header>");
+  cardHeader.addClass('card-header h4');
+  cardHeader.text(project.name);
+
+  // TODO: Create a new card body element and add the class `card-body`.
+  const cardBody = $("<body>");
+  cardBody.add("card-body");
+
+  // TODO: Create a new paragraph element and add the class `card-text`. Also set the text of the paragraph to the project type.
+  const cardType = $("<p>");
+  cardType.addClass('card-text');
+
+  // TODO: Create a new paragraph element and add the class `card-text`. Also set the text of the paragraph to the project due date.
+  const cardDate = $("<p>");
+  cardType.addClass('card-text');
+  cardType.text(project.date);
+
+  // TODO: Create a new button element and add the classes `btn`, `btn-danger`, and `delete`. Also set the text of the button to "Delete" and add a `data-project-id` attribute and set it to the project id.
+  const cardBtn = $('<button>');
+  cardBtn.addClass('btn btn-danger delete');
+  cardBtn.text('Delete');
+  cardBtn.attr("data-project-id", project.id);
 
   // ? Sets the card background color based on due date. Only apply the styles if the dueDate exists and the status is not done.
   if (project.dueDate && project.status !== 'done') {
@@ -42,12 +67,16 @@ function createProjectCard(project) {
       taskCard.addClass('bg-warning text-white');
     } else if (now.isAfter(taskDueDate)) {
       taskCard.addClass('bg-danger text-white');
-      cardDeleteBtn.addClass('border-light');
+      cardBtn.addClass('border-light');
     }
   }
 
   // TODO: Append the card description, card due date, and card delete button to the card body.
+  cardBody.append(cardType, cardDate, cardBtn);
+
   // TODO: Append the card header and card body to the card.
+  taskCard.append(cardHeader, cardBody);
+
 
   // ? Return the card so it can be appended to the correct lane.
   return taskCard;
@@ -66,9 +95,16 @@ function printProjectData() {
   const doneList = $('#done-cards');
   doneList.empty();
 
-  // TODO: Loop through projects and create project cards for each status
+  // DONE: Loop through projects and create project cards for each status
   for (let project of projects) {
-    
+    const projectCard = createProjectCard(project);
+    if (project.status === 'to-do') {
+      todoList.append(projectCard);
+    } else if (project.status === 'in-progress') {
+      inProgressList.append(projectCard);
+    } else {
+      doneList.append(projectCard);
+    }
   }
 
   // ? Use JQuery UI to make task cards draggable
@@ -93,8 +129,13 @@ function printProjectData() {
 function handleDeleteProject() {
   const projectId = $(this).attr('data-project-id');
   const projects = readProjectsFromStorage();
-
+  console.log("handleDelete works");
   // TODO: Loop through the projects array and remove the project with the matching id.
+  for (let project of projects) {
+    if(project.id === projectId) {
+      projects.splice(project,1);
+    }
+  }
 
   // ? We will use our helper function to save the projects to localStorage
   saveProjectsToStorage(projects);
@@ -107,7 +148,13 @@ function handleDeleteProject() {
 function handleProjectFormSubmit(event) {
   event.preventDefault();
 
-  // TODO: Get the project name, type, and due date from the form
+  // DONE: Get the project name, type, and due date from the form
+  let projectName = projectNameInputEl.val();
+  let projectType = projectTypeInputEl.val();
+  let projectDate = projectDateInputEl.val();
+  console.log("Project Name: " + projectName);
+  console.log("Project Type: " + projectType);
+  console.log("Project Date: " + projectDate);
 
 
   // ? Create a new project object with the data from the form
@@ -130,8 +177,10 @@ function handleProjectFormSubmit(event) {
   // ? Print project data back to the screen
   printProjectData();
 
-  // TODO: Clear the form inputs
- 
+  // DONE: Clear the form inputs
+  projectName = projectNameInputEl.val("");
+  projectType = projectTypeInputEl.val("");
+  projectDate = projectDateInputEl.val("");
 }
 
 // ? This function is called when a card is dropped into a lane. It updates the status of the project and saves it to localStorage. You can see this function is called in the `droppable` method below.
