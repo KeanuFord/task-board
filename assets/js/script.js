@@ -25,13 +25,14 @@ function createTaskCard(task) {
 
   const cardBody = $("<body>");
   cardBody.add("card-body");
+  cardBody.text(task.description);
 
   const cardType = $("<p>");
   cardType.addClass('card-text');
 
   const cardDate = $("<p>");
   cardType.addClass('card-text');
-  cardType.text(task.date);
+  cardType.text("Due Date: " + task.date);
 
   // Add delete button
   const cardBtn = $('<button>');
